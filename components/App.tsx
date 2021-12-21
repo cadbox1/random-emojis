@@ -1,3 +1,11 @@
+import { Provider } from "react-redux";
+import { Messages } from "./Messages";
+import { store } from "./store";
+
 export function App() {
-  return <p>App</p>;
+  return (
+    <Provider store={store}>
+      <Messages />
+    </Provider>
+  );
 }
