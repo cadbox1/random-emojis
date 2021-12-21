@@ -1,18 +1,19 @@
 async function handleSession(websocket) {
   websocket.accept();
   websocket.addEventListener("message", async ({ data }) => {
-    const actionType = data.type;
+    const action = JSON.parse(data);
+    const actionType = action.type;
 
-    // @todo handle this with redux and store it in durable objects
+    // @todo handle action with redux and update durable object state
     if (actionType === "message/message") {
-
       const TokMessage = {
         type: "message/message",
         payload: {
-          value: "Tok", timestamp: new Date().toISOString()
-        }
-      }
-      
+          value: "Tok",
+          timestamp: new Date().toISOString(),
+        },
+      };
+
       websocket.send(JSON.stringify(TokMessage));
     } else {
       // An unknown message came into the server. Send back an error message
