@@ -45,9 +45,9 @@ const websocketHandler = async (request) => {
   });
 };
 
-export const onRequest = async (request) => {
+export const onRequest = async (context) => {
   try {
-    return websocketHandler(request);
+    return websocketHandler(context.request);
   } catch (err) {
     return new Response(err.toString());
   }
