@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Message {
   value: string;
-  timestamp: Date;
+  timestamp: string;
 }
 
 export interface MessageState {
