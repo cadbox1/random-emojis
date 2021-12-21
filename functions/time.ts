@@ -1,3 +1,3 @@
-export const onRequestGet = () => {
-  return new Response(new Date().toISOString());
+export const onRequestGet = (request) => {
+  return JSON.stringify(request)
 };
