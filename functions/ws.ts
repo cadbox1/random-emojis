@@ -9,7 +9,7 @@ async function handleSession(websocket) {
       const TokMessage = {
         type: "message/message",
         payload: {
-          value: "Tok", timestamp: new Date().toISOString();
+          value: "Tok", timestamp: new Date().toISOString()
         }
       }
       
@@ -40,6 +40,7 @@ const websocketHandler = async (request) => {
 
   return new Response(null, {
     status: 101,
+    // @ts-ignore
     webSocket: client,
   });
 };
