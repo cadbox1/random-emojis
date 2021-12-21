@@ -13,5 +13,9 @@
     "export": "next export",
     "prestart": "npm run export",
     "start": "serve out"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.37",
+    "typescript": "^4.5.4"
   }
 }
