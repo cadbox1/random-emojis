@@ -9,3 +9,4 @@ npm install;
 npx wrangler login;
 npm run publish;
 ```
+Then bind the durable object in pages
