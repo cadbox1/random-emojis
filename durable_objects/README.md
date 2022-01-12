@@ -6,5 +6,6 @@ To maintain an accurate count of the number of downloads for each image, we're u
 
 ```sh
 npm install;
-CF_ACCOUNT_ID="<YOUR CLOUDFLARE ACCOUNT ID>" npm run publish;
+npx wrangler login;
+npm run publish;
 ```
