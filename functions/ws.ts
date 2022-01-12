@@ -1,3 +1,33 @@
+async function handleErrors(request, func) {
+  try {
+    return await func();
+  } catch (err) {
+    if (request.headers.get("Upgrade") == "websocket") {
+      // Annoyingly, if we return an HTTP error in response to a WebSocket request, Chrome devtools
+      // won't show us the response body! So... let's send a WebSocket response with an error
+      // frame instead.
+      let pair = new WebSocketPair();
+      // @ts-ignore
+      pair[1].accept();
+
+      const errorPayload = {
+        type: "message/message",
+        payload: {
+          value: "error",
+          error: err.stack,
+          timestamp: new Date().toISOString(),
+        },
+      };
+
+      pair[1].send(JSON.stringify(errorPayload));
+      pair[1].close(1011, "Uncaught exception during session setup");
+      return new Response(null, { status: 101, webSocket: pair[0] });
+    } else {
+      return new Response(err.stack, { status: 500 });
+    }
+  }
+}
+
 async function handleSession(websocket, env) {
   websocket.accept();
   websocket.addEventListener("message", async ({ data }) => {
@@ -6,7 +36,6 @@ async function handleSession(websocket, env) {
 
     // @todo handle action with redux and update durable object state
     if (actionType === "message/message") {
-
       const downloadCounterId = "test";
       const downloadCounter = env.DOWNLOAD_COUNTER.get(
         env.DOWNLOAD_COUNTER.idFromString(downloadCounterId)
@@ -64,10 +93,8 @@ const websocketHandler = async (request, env) => {
 
 export const onRequest: PagesFunction<{
   DOWNLOAD_COUNTER: DurableObjectNamespace;
-}> = async ({request, env}) => {
-  try {
-    return websocketHandler(request, env);
-  } catch (err) {
-    return new Response(err.toString());
-  }
+}> = async ({ request, env }) => {
+  return await handleErrors(request, async () => {
+    return await websocketHandler(request, env);
+  });
 };
