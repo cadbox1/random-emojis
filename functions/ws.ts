@@ -36,30 +36,52 @@ async function handleSession(websocket, env) {
 
     // @todo handle action with redux and update durable object state
     if (actionType === "message/message") {
-      const downloadCounterId = "test";
-      const downloadCounter = env.DOWNLOAD_COUNTER.get(
-        env.DOWNLOAD_COUNTER.idFromString(downloadCounterId)
-      );
-
-      await downloadCounter.fetch("https://images.pages.dev/increment");
-
-      // This isn't a real internet request, so the host is irrelevant (https://developers.cloudflare.com/workers/platform/compatibility-dates#durable-object-stubfetch-requires-a-full-url).
-      const downloadCountResponse = await downloadCounter.fetch(
-        "https://images.pages.dev/"
-      );
-
-      // @ts-ignore
-      const downloadCount = await downloadCountResponse.json<number>();
-
-      const TokMessage = {
+      const tokMessagePayload = {
         type: "message/message",
         payload: {
-          value: `Count: ${downloadCount}`,
+          value: `Tok`,
           timestamp: new Date().toISOString(),
         },
       };
+      websocket.send(JSON.stringify(tokMessagePayload));
 
-      websocket.send(JSON.stringify(TokMessage));
+      try {
+        const downloadCounterId = "test";
+        const downloadCounter = env.DOWNLOAD_COUNTER.get(
+          env.DOWNLOAD_COUNTER.idFromString(downloadCounterId)
+        );
+
+        await downloadCounter.fetch("https://images.pages.dev/increment");
+
+        // This isn't a real internet request, so the host is irrelevant (https://developers.cloudflare.com/workers/platform/compatibility-dates#durable-object-stubfetch-requires-a-full-url).
+        const downloadCountResponse = await downloadCounter.fetch(
+          "https://images.pages.dev/"
+        );
+
+        // @ts-ignore
+        const downloadCount = await downloadCountResponse.json<number>();
+
+        const countMessagePayload = {
+          type: "message/message",
+          payload: {
+            value: `Count: ${downloadCount}`,
+            timestamp: new Date().toISOString(),
+          },
+        };
+
+        websocket.send(JSON.stringify(countMessagePayload));
+      } catch (err) {
+        const errorMessagePayload = {
+          type: "message/message",
+          payload: {
+            value: `Error`,
+            error: err.stack,
+            timestamp: new Date().toISOString(),
+          },
+        };
+
+        websocket.send(JSON.stringify(errorMessagePayload));
+      }
     } else {
       // An unknown message came into the server. Send back an error message
       websocket.send(
