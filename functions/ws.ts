@@ -48,7 +48,7 @@ async function handleSession(websocket, env) {
       try {
         const downloadCounterId = "test";
         const downloadCounter = env.DOWNLOAD_COUNTER.get(
-          env.DOWNLOAD_COUNTER.idFromString(downloadCounterId)
+          env.DOWNLOAD_COUNTER.idFromName(downloadCounterId)
         );
 
         await downloadCounter.fetch("https://images.pages.dev/increment");
