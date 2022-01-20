@@ -14,7 +14,7 @@ export function Messages() {
 
   const handleClick = () => {
     const action = message({
-      value: "Tik",
+      value: "Ping",
       timestamp: new Date().toISOString(),
     });
     dispatch(action);
@@ -23,7 +23,7 @@ export function Messages() {
 
   return (
     <div>
-      <button onClick={handleClick}>Tik</button>
+      <button onClick={handleClick}>Ping</button>
       <h2>Messages</h2>
       <div>
         {messages.map((message, index) => (

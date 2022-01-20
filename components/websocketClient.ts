@@ -33,5 +33,6 @@ export function setupWebsocket() {
 const closeConnection = () => ws.close();
 
 export function websocketSend(data) {
+  console.log("Sending websocket message", data);
   ws.send(JSON.stringify(data));
 }

@@ -1,6 +1,7 @@
 export class Document {
   constructor(state) {
     this.state = state;
+    this.storage = state.storage;
 
     // this isn't actually persisted and that's okay because websockets are live connections.
     this.sessions = [];
@@ -53,7 +54,8 @@ export class Document {
     entries.reverse();
 
     // this should probably be a separate action that accepts bulk messages but oh well.
-    entries.forEach((entry) => {
+    entries.forEach((entryAsString) => {
+      const entry = JSON.parse(entryAsString);
       const entryAction = {
         type: "message/message",
         payload: {
@@ -66,7 +68,7 @@ export class Document {
 
     webSocket.addEventListener("message", async (message) => {
       try {
-        const action = JSON.parse(message);
+        const action = JSON.parse(message.data);
         const actionType = action.type;
         const payload = action.payload;
 
@@ -83,7 +85,7 @@ export class Document {
           await this.storage.put(key, entryAsString);
 
           // boradcast the redux action to the other clients.
-          this.broadcast(action);
+          this.broadcast(action, webSocket);
         }
       } catch (err) {
         const errorMessagePayload = {
@@ -107,7 +109,7 @@ export class Document {
   }
 
   // broadcast() broadcasts a message to all clients.
-  broadcast(message) {
+  broadcast(message, webSocket) {
     // Apply JSON if we weren't given a string to start with.
     if (typeof message !== "string") {
       message = JSON.stringify(message);
@@ -115,8 +117,12 @@ export class Document {
 
     // Iterate over all the sessions sending them messages.
     this.sessions = this.sessions.filter((session) => {
+      if (session === webSocket) {
+        // don't send messages to ourself
+        return true;
+      }
       try {
-        session.webSocket.send(message);
+        session.send(message);
         return true;
       } catch (err) {
         return false;
