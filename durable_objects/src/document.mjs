@@ -35,7 +35,7 @@ export class Document {
     webSocket.accept();
 
     // Create our session and add it to the sessions list.
-    this.sessions.push(websocket);
+    this.sessions.push(webSocket);
 
     // welcome the person
     const welcomeAction = {
@@ -45,7 +45,7 @@ export class Document {
         timestamp: new Date().toISOString(),
       },
     };
-    websocket.send(JSON.stringify(welcomeAction));
+    webSocket.send(JSON.stringify(welcomeAction));
 
     // Load the last 100 entries from the document and send them to the client.
     const storage = await this.storage.list({ reverse: true, limit: 100 });
@@ -61,7 +61,7 @@ export class Document {
           timestamp: entry.timestamp,
         },
       };
-      websocket.send(JSON.stringify(entryAction));
+      webSocket.send(JSON.stringify(entryAction));
     });
 
     webSocket.addEventListener("message", async (message) => {
@@ -94,7 +94,7 @@ export class Document {
             timestamp: new Date().toISOString(),
           },
         };
-        websocket.send(JSON.stringify(errorMessagePayload));
+        webSocket.send(JSON.stringify(errorMessagePayload));
       }
     });
 
