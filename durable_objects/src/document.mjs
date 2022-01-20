@@ -37,6 +37,16 @@ export class Document {
     // Create our session and add it to the sessions list.
     this.sessions.push(websocket);
 
+    // welcome the person
+    const welcomeAction = {
+      type: "message/message",
+      payload: {
+        value: "Welcome to the party!",
+        timestamp: new Date().toISOString(),
+      },
+    };
+    websocket.send(JSON.stringify(welcomeAction));
+
     // Load the last 100 entries from the document and send them to the client.
     const storage = await this.storage.list({ reverse: true, limit: 100 });
     const entries = [...storage.values()];

@@ -120,6 +120,6 @@ export const onRequest: PagesFunction<{
   return await handleErrors(request, async () => {
     const documentId = "my-cool-document";
     const document = env.DOCUMENT.get(env.DOCUMENT.idFromName(documentId));
-    document.fetch(request);
+    return document.fetch(request);
   });
 };
