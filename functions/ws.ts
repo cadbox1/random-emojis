@@ -115,8 +115,11 @@ const websocketHandler = async (request, env) => {
 
 export const onRequest: PagesFunction<{
   DOWNLOAD_COUNTER: DurableObjectNamespace;
+  DOCUMENT: DurableObjectNamespace;
 }> = async ({ request, env }) => {
   return await handleErrors(request, async () => {
-    return await websocketHandler(request, env);
+    const documentId = "my-cool-document";
+    const document = env.DOCUMENT.get(env.DOCUMENT.idFromName(documentId));
+    document.fetch(request);
   });
 };

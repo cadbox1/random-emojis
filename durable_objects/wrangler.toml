@@ -1,4 +1,4 @@
-name = "images-download-counter"
+name = "document"
 type = "javascript"
 workers_dev = true
 compatibility_date = "2021-11-17"
@@ -6,13 +6,13 @@ compatibility_date = "2021-11-17"
 [build.upload]
 dir = "src"
 format = "modules"
-main = "./downloadCounter.mjs"
+main = "./document.mjs"
 
 [durable_objects]
 bindings = [
-  { name = "DOWNLOAD_COUNTER", class_name = "DownloadCounter" }
+  { name = "DOCUMENT", class_name = "Document" }
 ]
 
 [[migrations]]
 tag = "v1"
-new_classes = ["DownloadCounter"]
+new_classes = ["Document"]
