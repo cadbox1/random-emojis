@@ -18,7 +18,7 @@ export const messageSlice = createSlice({
   initialState,
   reducers: {
     message: (state, action: PayloadAction<Message>) => {
-      state.messages.unshift(action.payload);
+      state.messages.push(action.payload);
     },
   },
 });
