@@ -5,9 +5,9 @@ export default function Index() {
   return (
     <div>
       <Head>
-        <title>Random Emojis with Cloudflare, Websockets and Redux</title>
+        <title>Random Emojis with Cloudflare, WebSockets and Redux</title>
       </Head>
-      <h1>Random Emojis with Cloudflare, Websockets and Redux</h1>
+      <h1>Random Emojis with Cloudflare, WebSockets and Redux</h1>
       <App />
     </div>
   );
