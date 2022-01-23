@@ -1,5 +1,13 @@
+// largely based on: https://github.com/cloudflare/workers-chat-demo/blob/master/src/chat.mjs
+// and types from: https://github.com/cloudflare/durable-objects-typescript-rollup-esm/blob/master/src/counter.ts
+
 export class Document {
-  constructor(state) {
+
+  state: DurableObjectState
+  storage: DurableObjectStorage
+  sessions: WebSocket[]
+
+  constructor(state: DurableObjectState) {
     this.state = state;
     this.storage = state.storage;
 
@@ -9,8 +17,7 @@ export class Document {
     // the actual document entries will be stored in this.state.storage
   }
 
-  // main entrypoint
-  async fetch(request) {
+  async fetch(request: Request) {
     if (request.headers.get("Upgrade") != "websocket") {
       return new Response("expected websocket", { status: 400 });
     }
@@ -30,7 +37,7 @@ export class Document {
   }
 
   // handle the websocket connection
-  async handleSession(webSocket) {
+  async handleSession(webSocket: WebSocket) {
     // Accept our end of the WebSocket. This tells the runtime that we'll be terminating the
     // WebSocket in JavaScript, not sending it elsewhere.
     webSocket.accept();
@@ -48,14 +55,14 @@ export class Document {
     };
     webSocket.send(JSON.stringify(welcomeAction));
 
-    // Load the last 100 entries from the document and send them to the client.
+    // Load the last 100 items from the document and send them to the client.
     const storage = await this.storage.list({ reverse: true, limit: 100 });
-    const entries = [...storage.values()];
-    entries.reverse();
+    const items = [...storage.values()] as string[];
+    items.reverse();
 
     // this should probably be a separate action that accepts bulk messages but oh well.
-    entries.forEach((entryAsString) => {
-      const entry = JSON.parse(entryAsString);
+    items.forEach((itemsAsString) => {
+      const entry = JSON.parse(itemsAsString);
       const entryAction = {
         type: "message/message",
         payload: {
@@ -68,6 +75,9 @@ export class Document {
 
     webSocket.addEventListener("message", async (message) => {
       try {
+        if (!(typeof message.data === "string")) {
+          throw new Error("Expected string in WebSocket message data.")
+        }
         const action = JSON.parse(message.data);
         const actionType = action.type;
         const payload = action.payload;
@@ -84,7 +94,7 @@ export class Document {
           const entryAsString = JSON.stringify(entry);
           await this.storage.put(key, entryAsString);
 
-          // boradcast the redux action to the other clients.
+          // broadcast the redux action to the other clients.
           this.broadcast(action, webSocket);
         }
       } catch (err) {
@@ -92,7 +102,7 @@ export class Document {
           type: "message/message",
           payload: {
             value: `Error`,
-            error: err.stack,
+            error: err instanceof Error ? err.stack: "Something went wrong.",
             timestamp: new Date().toISOString(),
           },
         };
@@ -101,19 +111,16 @@ export class Document {
     });
 
     // On "close" and "error" events, remove the WebSocket from the sessions list
-    let closeOrErrorHandler = (evt) => {
-      this.sessions = this.sessions.filter((member) => member !== session);
+    const closeOrErrorHandler = () => {
+      this.sessions = this.sessions.filter((member) => member !== webSocket);
     };
     webSocket.addEventListener("close", closeOrErrorHandler);
     webSocket.addEventListener("error", closeOrErrorHandler);
   }
 
   // broadcast() broadcasts a message to all clients.
-  broadcast(message, webSocket) {
-    // Apply JSON if we weren't given a string to start with.
-    if (typeof message !== "string") {
-      message = JSON.stringify(message);
-    }
+  broadcast(messageObject: Object, webSocket: WebSocket) {
+    const message = JSON.stringify(messageObject);
 
     // Iterate over all the sessions sending them messages.
     this.sessions = this.sessions.filter((session) => {
@@ -130,9 +137,3 @@ export class Document {
     });
   }
 }
-
-export default {
-  fetch() {
-    return new Response("This Worker creates the Document Durable Object.");
-  },
-};

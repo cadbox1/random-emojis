@@ -1,18 +1,21 @@
-name = "document"
+name = "random-emojis-document-durable-object"
+# type = "javascript" is required to use the `[build]` section
 type = "javascript"
+account_id = ""
 workers_dev = true
-compatibility_date = "2021-11-17"
+route = ""
+zone_id = ""
 
+[build]
+command = "npm install && npm test && npm run build"
 [build.upload]
-dir = "src"
+# The "modules" upload format is required for all projects that export a Durable Objects class
 format = "modules"
-main = "./document.mjs"
+main = "./index.mjs"
 
 [durable_objects]
-bindings = [
-  { name = "DOCUMENT", class_name = "Document" }
-]
+bindings = [{name = "DOCUMENT", class_name = "Document"}]
 
 [[migrations]]
-tag = "v1"
+tag = "v1" # Should be unique for each entry
 new_classes = ["Document"]

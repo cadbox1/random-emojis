@@ -16,10 +16,11 @@ export function Messages() {
 
   useLayoutEffect(() => {
     const container = containerRef.current;
-    // allow 60px inaccuracy by adding 60
+    
+    // https://stackoverflow.com/a/21067431
     const isScrolledToBottom =
       container.scrollHeight - container.clientHeight <=
-      container.scrollTop + 60;
+      container.scrollTop + 60; // not really sure why 60 but it seems to work
 
     // scroll to bottom if isScrolledToBottom is true or forced
     if (isScrolledToBottom) {
