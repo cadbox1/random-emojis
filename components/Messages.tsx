@@ -43,7 +43,8 @@ export function Messages() {
 		<div style={{ paddingBottom: "1rem" }}>
 			<div
 				style={{
-					height: `400px`,
+					height: `350px`,
+					width: `50%`,
 					overflow: `auto`,
 				}}
 				ref={containerRef}
