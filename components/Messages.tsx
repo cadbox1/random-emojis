@@ -1,3 +1,4 @@
+import { H1 } from "cadells-vanilla-components";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { message } from "./messageSlice";
@@ -6,69 +7,69 @@ import { RootState } from "./store";
 import { setupWebsocket, websocketSend } from "./websocketClient";
 
 export function Messages() {
-  const messages = useSelector((state: RootState) => state.message.messages);
-  const dispatch = useDispatch();
-  const containerRef = useRef(null);
+	const messages = useSelector((state: RootState) => state.message.messages);
+	const dispatch = useDispatch();
+	const containerRef = useRef(null);
 
-  useEffect(() => {
-    setupWebsocket();
-  }, []);
+	useEffect(() => {
+		setupWebsocket();
+	}, []);
 
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    
-    // https://stackoverflow.com/a/21067431
-    const isScrolledToBottom =
-      container.scrollHeight - container.clientHeight <=
-      container.scrollTop + 60; // not really sure why 60 but it seems to work
+	useLayoutEffect(() => {
+		const container = containerRef.current;
 
-    // scroll to bottom if isScrolledToBottom is true or forced
-    if (isScrolledToBottom) {
-      container.scrollTop = container.scrollHeight - container.clientHeight;
-    }
-  }, [messages.length]);
+		// https://stackoverflow.com/a/21067431
+		const isScrolledToBottom =
+			container.scrollHeight - container.clientHeight <=
+			container.scrollTop + 60; // not really sure why 60 but it seems to work
 
-  const handleSubmit = (evt) => {
-    evt.preventDefault();
-    const action = message({
-      value: randomEmoji(),
-      timestamp: new Date().toISOString(),
-    });
-    dispatch(action);
-    websocketSend(action);
-  };
+		// scroll to bottom if isScrolledToBottom is true or forced
+		if (isScrolledToBottom) {
+			container.scrollTop = container.scrollHeight - container.clientHeight;
+		}
+	}, [messages.length]);
 
-  return (
-    <div>
-      <div
-        style={{
-          height: `400px`,
-          overflow: `auto`,
-        }}
-        ref={containerRef}
-      >
-        {messages.map((message, index) => (
-          <p
-            key={index}
-            title={`${new Date(message.timestamp).toLocaleString()}`}
-            style={{ fontSize: `2rem`, margin: `0.5rem 0` }}
-          >
-            {message.value}
-          </p>
-        ))}
-      </div>
-      <form onSubmit={handleSubmit} style={{ marginTop: `1rem` }}>
-        <button
-          type="submit"
-          style={{
-            fontSize: `1rem`,
-            padding: `0.5rem 0.75rem`,
-            WebkitAppearance: `none`,
-          }}
-        >
-          Add Emoji
-        </button>
-      </form>
-    </div>
-  );
+	const handleSubmit = evt => {
+		evt.preventDefault();
+		const action = message({
+			value: randomEmoji(),
+			timestamp: new Date().toISOString(),
+		});
+		dispatch(action);
+		websocketSend(action);
+	};
+
+	return (
+		<div style={{ paddingBottom: "1rem" }}>
+			<div
+				style={{
+					height: `400px`,
+					overflow: `auto`,
+				}}
+				ref={containerRef}
+			>
+				{messages.map((message, index) => (
+					<p
+						key={index}
+						title={`${new Date(message.timestamp).toLocaleString()}`}
+						style={{ fontSize: `2rem`, margin: `0.5rem 0` }}
+					>
+						{message.value}
+					</p>
+				))}
+			</div>
+			<form onSubmit={handleSubmit} style={{ marginTop: `1rem` }}>
+				<button
+					type="submit"
+					style={{
+						fontSize: `1rem`,
+						padding: `0.5rem 0.75rem`,
+						WebkitAppearance: `none`,
+					}}
+				>
+					Add Emoji
+				</button>
+			</form>
+		</div>
+	);
 }
