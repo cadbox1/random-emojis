@@ -5,8 +5,43 @@ import { App } from "../components/App"
 
 # Random Emojis
 
-Powered by Cloudflare, WebSockets and Redux.
+A live feed of random emojis using Cloudflare, WebSockets and Redux.
 
 <App />
 
-The Emojis are live and sent to everyone viewing this page.
+## Background
+
+I had an idea for a new app called Random Recipes and worked out I could do the first version on the frontend, easy! I've built a few NextJS apps now and I'm getting pretty good at it, I even created some reusable components, cadells-vanilla-components, as part of my last project, random-emojis.
+
+All I have to do is rip out the frontend from random-emojis, strip it back and I'm ready to start developing random-recipes. But what about the next project? It would be great to have a template all ready to go with all my favourite things in it.
+
+## User Stories
+
+As Cadell, I want a NextJS template with all my favourite things in it so I can build apps faster in the future.
+
+## Solution
+
+A basic NextJS app setup with MDX, vanilla-extract, cadells-vanilla-components and an emoji favicon.
+
+It should also have some basic headings in the index.mdx to explain my new projects.
+
+I think I'll deploy it to Netlify too.
+
+## Challenges
+
+- I didn't realise Netlify now uses a NextJS plugin so there's no need to update the build command and output directory.
+
+## Notes
+
+Netlify has a NextJS plugin now so you should keep the default build command and publish directory:
+
+- Build command: yarn build
+- Publish directory: .next
+
+This project took about 1 hour.
+
+## Milestones
+
+- done - NextJS app
+- done - Project headings
+- done - Deployment

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { message } from "./messageSlice";
 import { randomEmoji } from "./randomEmoji";
 import { RootState } from "./store";
+import { appClass } from "./styles.css";
 import { setupWebsocket, websocketSend } from "./websocketClient";
 
 export function Messages() {
@@ -40,7 +41,7 @@ export function Messages() {
 	};
 
 	return (
-		<div style={{ paddingBottom: "1rem" }}>
+		<div className={appClass}>
 			<div
 				style={{
 					height: `350px`,
