@@ -1,4 +1,4 @@
-import { H1 } from "cadells-vanilla-components";
+import { Button, H1 } from "cadells-vanilla-components";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { message } from "./messageSlice";
@@ -46,6 +46,7 @@ export function Messages() {
 					height: `350px`,
 					width: `50%`,
 					overflow: `auto`,
+					paddingBottom: "1rem"
 				}}
 				ref={containerRef}
 			>
@@ -59,18 +60,9 @@ export function Messages() {
 					</p>
 				))}
 			</div>
-			<form onSubmit={handleSubmit} style={{ marginTop: `1rem` }}>
-				<button
-					type="submit"
-					style={{
-						fontSize: `1rem`,
-						padding: `0.5rem 0.75rem`,
-						WebkitAppearance: `none`,
-					}}
-				>
-					Add Emoji
-				</button>
-			</form>
+			{/*
+ 				// @ts-ignore */}
+			<Button onClick={handleSubmit}>Add Emoji</Button>
 		</div>
 	);
 }
