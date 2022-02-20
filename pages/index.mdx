@@ -11,37 +11,26 @@ A live feed of random emojis using Cloudflare, WebSockets and Redux.
 
 ## Background
 
-I had an idea for a new app called Random Recipes and worked out I could do the first version on the frontend, easy! I've built a few NextJS apps now and I'm getting pretty good at it, I even created some reusable components, cadells-vanilla-components, as part of my last project, random-emojis.
 
-All I have to do is rip out the frontend from random-emojis, strip it back and I'm ready to start developing random-recipes. But what about the next project? It would be great to have a template all ready to go with all my favourite things in it.
 
 ## User Stories
 
-As Cadell, I want a NextJS template with all my favourite things in it so I can build apps faster in the future.
+As one of Cadell's friends, I want a live feed of random emojis that I can add to so I can send and receive random emojis for some mild amusement.
+
+As Cadell, I want to build a realtime application using websockets and cloudflare because realtime applications, cloudflare and websockets are all cool and I haven't used any of them before.
 
 ## Solution
 
-A basic NextJS app setup with MDX, vanilla-extract, cadells-vanilla-components and an emoji favicon.
-
-It should also have some basic headings in the index.mdx to explain my new projects.
-
-I think I'll deploy it to Netlify too.
+![sequence diagram](/sequence.png)
+[Original Diagram](https://mermaid.live/edit/#pako:eNrtlD1PwzAQhv_K4YWlDHTM0AlWQEKIJcslftu6JOfiD6qq4r9zIQkFRFvETKbEeZ873yPLO1N7C1MYinjOkBpXjheB21KIc_KS2wpBP_RZc0iudmuWRA8RgS4PrE9L6f_0qYvZ7NGHJ4SCGqTzSLUXQZ0oRycL2qCKvn5Cij3UZxW6yoGrBnRbrTRdUPQtvIA22ihS8ifqfMV_qpd8AKUlxkLOywF03P8SATpAx6D1Kxe1K9U5BEhqtrTkF3wbolfwQXYz0DzLgI-ibnwCBbdYJvJzGpm7hredTtLqCH1b1lb8xe_03-_0D36nn_xGiI3EA3XCLlurUa97DGP-qNaj1K8lqgrB5ii6l7gdjtCEeE-pvUgVIN1eYA-e0z08OP1U4-ydMhPTIrTsrF4cu26pNDpYi9IU-mox59yk0pTyqtG8tpxwbZ1OYoo5NxET090t91upTZFCxhga7p4h9foGWI6T6Q)
 
 ## Challenges
 
-- I didn't realise Netlify now uses a NextJS plugin so there's no need to update the build command and output directory.
 
 ## Notes
 
-Netlify has a NextJS plugin now so you should keep the default build command and publish directory:
 
-- Build command: yarn build
-- Publish directory: .next
-
-This project took about 1 hour.
 
 ## Milestones
 
-- done - NextJS app
-- done - Project headings
-- done - Deployment
+
