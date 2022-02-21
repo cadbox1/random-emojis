@@ -11,13 +11,23 @@ A live feed of random emojis using Cloudflare, WebSockets and Redux.
 
 ## Background
 
+Cloudflare is pretty hot at the moment. They've announced [R2](https://news.ycombinator.com/item?id=28682237), a cheap alternative to AWS S3 with a smooth migration path, [Cloudflare Pages has gone full stack](https://news.ycombinator.com/item?id=29253032), allowing you to deploy stateful applications with ease, and Durable Objects are the stateful part of that stack and they [sound really interesting](https://blog.cloudflare.com/durable-objects-easy-fast-correct-choose-three/).
 
+I've got a soft spot for stateful applications. I've deployed [PRAwN Stack](https://prawn.cadell.dev) on AWS recently and it was a journey to get there. I've also deployed [lots of frontend applications](https://cadell.dev) on Netlify and they make it really easy. I've also used their serverless functions for [https://verynested.cadell.dev] and it was pretty easy too. But Netlify doesn't offer storage for stateful applications, they recommend using another provider like AWS which isn't as easy. Stateful applications are fun applications. I made my first one 12 years ago in high school, a basic chat room powered by a LAMP stack. Firebase makes stateful applications easy but it comes with it's own tradeoffs. It's going to interesting to see how this space develops with companies like Vercel and Netlify raising lots of money to make the deployment experience smoother.
+
+Cloudflare is already moving in this space with [Cloudflare Pages]((https://news.ycombinator.com/item?id=29253032) but they [also support WebSockets](https://blog.cloudflare.com/introducing-websockets-in-workers/) which means we can build realtime applications too. The only thing better than a stateful application is a realtime stateful application, just look at Google Docs and Notion. They've recently [reduced the costs of using WebSockets](https://blog.cloudflare.com/workers-optimization-reduces-your-bill/) which is great! This article on using [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) to build a realtime application was a massive inspiration for this project.
+
+Realtime applications are a thing on their own and there's a range of solutions out there, each with their own tradeoffs. CRDTs are pretty hot right now too, like [SyncedStore](https://news.ycombinator.com/item?id=29483913) which builds on [Yjs](https://github.com/yjs/yjs). Another option is [Automerge](https://news.ycombinator.com/item?id=16309533) which has an API that might play nicer with Redux and here's an article on the [performance and optimisations of CRDT solutions](https://news.ycombinator.com/item?id=28017204). It goes deep. [Figma found CRDTs were overkill](https://news.ycombinator.com/item?id=21378858) for their use case because they had a central server to act as a source of truth whereas CRDTs more for peer to peer communication but they did use them as inspiration.
+
+I decided to do the same. I was already familiar with Redux where there's a separation between actions and how they update a central state using reducers. Actions already have all the information we need to update the state so why can't we share those around using WebSockets? I found [Logux](https://logux.io/) and [@localfirst/state](https://github.com/local-first-web/state) and [some others](https://github.com/markerikson/redux-ecosystem-links/blob/master/store.md#synchronization) but ultimately couldn't see how these would work with Cloudflare, at least at this stage, so I decided against them.
 
 ## User Stories
 
-As one of Cadell's friends, I want a live feed of random emojis that I can add to so I can send and receive random emojis for some mild amusement.
+As Cadell, I want to build a realtime application using WebSockets and Cloudflare because they're all cool and I haven't used any of them before.
 
-As Cadell, I want to build a realtime application using websockets and cloudflare because realtime applications, cloudflare and websockets are all cool and I haven't used any of them before.
+As Cadell, I want to build a stateful application using Cloudflare's Durable Obects so I can decide whether to use it for future applications, like [Very Nested](https://verynested.cadell.dev).
+
+As one of Cadell's friends, I want a live feed of random emojis that I can add to so I can send and receive random emojis for some mild amusement.
 
 ## Solution
 
