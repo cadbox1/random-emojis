@@ -19,50 +19,56 @@ As Cadell, I want to build a stateful application using Cloudflare's Durable Obj
 
 ## Background
 
-Cloudflare is pretty hot at the moment. They've announced [R2](https://news.ycombinator.com/item?id=28682237), a cheap alternative to AWS S3 with a smooth migration path, [Cloudflare Pages has gone full stack](https://news.ycombinator.com/item?id=29253032), allowing you to deploy stateful applications with ease, and Durable Objects are the stateful part of that stack and they [sound really interesting](https://blog.cloudflare.com/durable-objects-easy-fast-correct-choose-three/).
+Cloudflare is pretty hot at the moment. They've announced [R2](https://news.ycombinator.com/item?id=28682237) which is a cheap alternative to AWS S3 with a smooth migration path, making for some serious competition to AWS, [Cloudflare Pages has gone full stack](https://news.ycombinator.com/item?id=29253032) allowing you to deploy fullstack applications with ease and Durable Objects is a new kind of data store that [sounds really interesting](https://blog.cloudflare.com/durable-objects-easy-fast-correct-choose-three/).
 
-I've got a soft spot for stateful applications. I've deployed [PRAwN Stack](https://prawn.cadell.dev) on AWS recently and it was a journey to get there. I've also deployed [lots of frontend applications](https://cadell.dev) on Netlify and they make it really easy. I've also used their serverless functions for [https://verynested.cadell.dev] and it was pretty easy too. But Netlify doesn't offer storage for stateful applications, they recommend using another provider like AWS which isn't as easy. Stateful applications are fun applications. I made my first one 12 years ago in high school, a basic chat room powered by a LAMP stack. Firebase makes stateful applications easy but it comes with it's own tradeoffs. It's going to interesting to see how this space develops with companies like Vercel and Netlify raising lots of money to make the deployment experience smoother.
+I've got a soft spot for stateful applications because they let people interact with each other and that can be fun! I made a chat app 12 years ago in high school using a LAMP stack and free hosting which would later go on to get hacked, leaking my severely reused password to the world. But before that, my friends played with my chat app and we had some laughs.
 
-Cloudflare is already moving in this space with [Cloudflare Pages](https://news.ycombinator.com/item?id=29253032) but they [also support WebSockets](https://blog.cloudflare.com/introducing-websockets-in-workers/) which means we can build realtime applications too. The only thing better than a stateful application is a realtime stateful application, just look at Google Docs and Notion. They've recently [reduced the costs of using WebSockets](https://blog.cloudflare.com/workers-optimization-reduces-your-bill/) which is great! This article on using [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) to build a realtime application was a massive inspiration for this project.
+I recently deployed [PRAwN Stack](https://prawn.cadell.dev) on AWS with a React frontend, NodeJS Lambda backend and a Postgres data store and I'm really happy with the result but deploying it to AWS was a journey to say the least. I think I've been spoilt by [Netlify](https://www.netlify.com/) which makes deployments very easy. I've used it for multiple [frontend applications](https://cadell.dev) and some backend functions for [Very Nested](https://verynested.cadell.dev) but nothing fullstack because they recommend using another provider like AWS for a data store which largely defeats the purpose of using Netlify in my opinion. I can probably reuse PRAwN Stack](https://prawn.cadell.dev) going forward but what other options are there? Firebase springs to mind but it comes with it's own trade-offs. Vercel and Netlify have raised a lot of money recently, maybe they'll move into this space?
 
-Realtime applications are a thing on their own and there's a range of solutions out there, each with their own tradeoffs. CRDTs are pretty hot right now too, like [SyncedStore](https://news.ycombinator.com/item?id=29483913) which builds on [Yjs](https://github.com/yjs/yjs). Another option is [Automerge](https://news.ycombinator.com/item?id=16309533) which has an API that might play nicer with Redux and here's an article on the [performance and optimisations of CRDT solutions](https://news.ycombinator.com/item?id=28017204). It goes deep. [Figma found CRDTs were overkill](https://news.ycombinator.com/item?id=21378858) for their use case because they had a central server to act as a source of truth whereas CRDTs more for peer to peer communication but they did use them as inspiration.
+[Cloudflare Pages going fullstack](https://news.ycombinator.com/item?id=29253032) means Cloudflare already is which is particularly exciting because they seem to be moving quickly in general with things like R2. Cloudflare already has a powerful CDN for static assets, workers for backend functions and Durable Objects for a datastore, if they can tie all that together with something half as good as Netlify then that's going to be massive. 
 
-I decided to do the same. I was already familiar with Redux where there's a separation between actions and how they update a central state using reducers. Actions already have all the information we need to update the state so why can't we share those around using WebSockets? I found [Logux](https://logux.io/) and [@localfirst/state](https://github.com/local-first-web/state) and [some others](https://github.com/markerikson/redux-ecosystem-links/blob/master/store.md#synchronization) but ultimately couldn't see how these would work with Cloudflare, at least at this stage, so I decided against them.
+And it doesn't stop there because they also [support WebSockets](https://blog.cloudflare.com/introducing-websockets-in-workers/), allowing us to build realtime applications too! The only thing better than a stateful application is a realtime stateful application, just look at Google Docs and Notion. Cloudflare have recently [reduced the costs of using WebSockets](https://blog.cloudflare.com/workers-optimization-reduces-your-bill/) too which is another bonus. Glenn Maddern describes their experience with building a realtime application with Cloudflare really well in this article, [Durable Objects in production](https://news.ycombinator.com/item?id=25084470). It was a massive inspiration for this project.
+
+Diving in deeper, realtime applications are a thing all on their own and there's a range of solutions out there, each with their own trade-offs. CRDTs are pretty hot right now too, like [SyncedStore](https://news.ycombinator.com/item?id=29483913) which builds on [Yjs](https://github.com/yjs/yjs). Another option is [Automerge](https://news.ycombinator.com/item?id=16309533) which looks like it might play nicer with Redux and then there's this fun article on the [performance and optimisations of CRDT solutions](https://news.ycombinator.com/item?id=28017204). It goes deep. [Figma found CRDTs were overkill](https://news.ycombinator.com/item?id=21378858) for their use case because they had a central server to act as a source of truth. CRDTs seem better suited for peer to peer communication but they did use them for inspiration.
+
+I decided to do the same. I was already familiar with Redux which seems perfect for realtime applications. In Redux, users trigger Actions that are then handled by Reducers to update a central data store. Actions already contain all the information required by the Reducer to update the datastore, can't we just share them around? I found [Logux](https://logux.io/), [@localfirst/state](https://github.com/local-first-web/state) and [some others](https://github.com/markerikson/redux-ecosystem-links/blob/master/store.md#synchronization) seem to have a similar idea but I couldn't see how they would work with Cloudflare so I decided against them.
 
 ## Solution
 
 ![sequence diagram](/sequence.png)
 [Sequence Diagram in MermaidJS](https://mermaid.live/edit/#pako:eNrtlD1PwzAQhv_K4YWlDHTM0AlWQEKIJcslftu6JOfiD6qq4r9zIQkFRFvETKbEeZ873yPLO1N7C1MYinjOkBpXjheB21KIc_KS2wpBP_RZc0iudmuWRA8RgS4PrE9L6f_0qYvZ7NGHJ4SCGqTzSLUXQZ0oRycL2qCKvn5Cij3UZxW6yoGrBnRbrTRdUPQtvIA22ihS8ifqfMV_qpd8AKUlxkLOywF03P8SATpAx6D1Kxe1K9U5BEhqtrTkF3wbolfwQXYz0DzLgI-ibnwCBbdYJvJzGpm7hredTtLqCH1b1lb8xe_03-_0D36nn_xGiI3EA3XCLlurUa97DGP-qNaj1K8lqgrB5ii6l7gdjtCEeE-pvUgVIN1eYA-e0z08OP1U4-ydMhPTIrTsrF4cu26pNDpYi9IU-mox59yk0pTyqtG8tpxwbZ1OYoo5NxET090t91upTZFCxhga7p4h9foGWI6T6Q)
 
+[ up to here ]
+
+After all that background reading, the solution is quite simple. The frontend is a NextJS app with Redux, the API is a Cloudflare Worker and the data store is a Cloudflare Durable Object. The frontend sets up a WebSocket connection with the Worker which is effectively a proxy for the Durable Object. When the connection is first established the Durable Object will send down the current feed of Emojis and remembers the connection for syncing updates later on. When a user adds a new emoji, a new Redux action is created and a reducer handles it to update the local state. At the same time, that action is also sent through the WebSocket connection to the Durable Object. The Durable Object stores that emoji in the feed and broadcasts that action to other users through their existing WebSocket connection. They receive the action and a reducer handles it to update the local state.
+
+This is deployed using Cloudflare Pages which gives us a build and deploy pipeline so all we have to do is commit and push. I later learned that Durable Objects need to be deployed separately but more on that later.
+
 ## Notes
 
 This was a fun project overall. There were certainly rough parts but now that it's all working I'm really happy with how it turned out. Sharing Redux actions over WebSockets works well and the code for the the Durable Objects looks great.
 
-Glen Maddern describes Durable Objects as Stateful Workers in [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) and after working with them I have to agree. Durable Objects work just like workers with some persistence methods added on top.
-
-Cloudflare Pages was a bit of an issue 
-
-[ up to here ]
+Glen Maddern describes Durable Objects as Stateful Workers in [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) and after working with them I have to agree. Durable Objects work just like workers with some persistence methods added on top. I think this really shines with WebSockets.
 
 ## Challenges
 
-- My first Cloudflare Pages deploy failed with NextJS, needed to specify a node version with nvmrc.
-- WebSockets documentation is focused on workers not pages so I have to workout how that works.
-- I can't find the error logs for functions deployed with pages so I have to guess, deploy, check and refine.
-- using durable objects with pages is really challenging
-- cloudflare pages wasn't building anything on the 13th of Jan, failing with an internal error so I couldn't test my durable object binding
-- cloudflare doesn't always take you to the right build when you click view build
-- again, lack of logs means time spent into put into more manual logging, particularly with websockets when talking to a durable object for the first time
-- publishing my first package was really hard without tsup
+Cloudflare Pages presented a few challenges:
+1. Cloudflare Pages has Functions which are just Cloudflare Workers but there are some slight differences and a lot of the Workers docs take some adjustment.
+1. I couldn't find any logs for my Cloudflare Pages Functions, making debugging slow.
+1. The relationship between Durable Objects and Pages wasn't clearly documented. I eventually worked out Durable Objects are deployed separately but it took me a while to get there. The steps in the readme are also misleading.
+1. My first Cloudflare Pages deploy failed with NextJS, needed to specify a node version with nvmrc.
+
+I haven't deployed a package to NPM before so it took me a bit of time to work that out. I started with [TSDX](https://github.com/jaredpalmer/tsdx) but ran into some typescript issues that I still don't fully understand. Thankfully, I tried [tsup](https://github.com/egoist/tsup) and it worked more or less out of the box. I also used [np](https://github.com/sindresorhus/np) for releasing to NPM which has brought [cadells-vanilla-components](https://github.com/cadbox1/cadells-vanilla-components) into the world. It doesn't have Storybook or anything like that but it's working well enough so far.
+
 
 ## Milestones
 
-- ✅ setup cloudflare account
-- ✅ deploy nextjs website
-- ✅ setup redux on the frontend
-- ✅ create first function
-- ✅ connect to workers over websocket, 2.5h to get to this point
-- ✅ deploy a durable object, 2h
+- ✅ Setup cloudflare account.
+- ✅ Deploy NextJS website.
+- ✅ Setup Redux.
+- ✅ Create my first Worker function.
+- ✅ Setup a WebSocket connection with a Worker. (2.5h to get to this point)
+- ✅ Deploy a Durable Object. (2h)
     - create a durable object
         - resources
             - https://blog.cloudflare.com/building-full-stack-with-pages/
@@ -80,29 +86,15 @@ Cloudflare Pages was a bit of an issue
             - npx run publish then goes onto produce the same error but this time it actually shows a prompt where you can agree
                 - I think this was meant to come up before, probably a bug
             - finally npx run publish works and now I understand it better - it creates a durable object that you can manually bind in pages to access it. that sure was confusing
-        - next steps
-            - use ts template
-            - bind the namespace
-            - use the durable object from a pages worker
-            - raise this shit experience with cloudflare 
-                - PR to the demo readme to correct that
-                - correct the blog article which is misleading
-- ✅ access the durable object from a worker, 1.5h
+- ✅ Access the Durable Object from a Worker. (1.5h)
     - builds failed due to an internal error which was annoying
     - needed to add more error logging because again I can't see builds
-- ✅ setup durable worker for messages, 2h
-    - similar to a single chat room
-        - we'll add sessions later
-    - setup websockets
-        - https://github.com/cloudflare/workers-chat-demo/blob/master/src/chat.mjs
-    - broadcast messages to all connected clients
-    - send previously sent messages back to client on first connection
-- ✅ send random emojis instead of "Tik" - 1h
-    - maybe setup a chat-style window with css too
-- ✅ setup typescript - 1h
+- ✅ Setup a Durable Worker for messages. (2h)
+    - https://github.com/cloudflare/workers-chat-demo/blob/master/src/chat.mjs
+- ✅ Send random emojis instead of a "Tik" message. (1h)
+- ✅ Setup Typescript for the Durable Object - 1h
     - https://github.com/cloudflare/durable-objects-typescript-rollup-esm
-- ✅ create package for my styles and components - 3h
-    - ended up using tsup
-    - had to make mdx-js/react the peer dependency
-- ✅ style the site and add mdx - 1.5h
-- add project description
+- ✅ Create a reusable npm package for components and styles. (3h)
+    - https://github.com/cadbox1/cadells-vanilla-components
+- ✅ Style this and setup MDX. (1.5h)
+- Write about the project and my experience.
