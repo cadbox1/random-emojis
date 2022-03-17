@@ -29,22 +29,28 @@ I recently deployed [PRAwN Stack](https://prawn.cadell.dev) on AWS with a React 
 
 And it doesn't stop there because they also [support WebSockets](https://blog.cloudflare.com/introducing-websockets-in-workers/), allowing us to build realtime applications too! The only thing better than a stateful application is a realtime stateful application, just look at Google Docs and Notion. Cloudflare have recently [reduced the costs of using WebSockets](https://blog.cloudflare.com/workers-optimization-reduces-your-bill/) too which is another bonus. Glenn Maddern describes their experience with building a realtime application with Cloudflare really well in this article, [Durable Objects in production](https://news.ycombinator.com/item?id=25084470). It was a massive inspiration for this project.
 
-Diving in deeper, realtime applications are a thing all on their own and there's a range of solutions out there, each with their own trade-offs. CRDTs are pretty hot right now too, like [SyncedStore](https://news.ycombinator.com/item?id=29483913) which builds on [Yjs](https://github.com/yjs/yjs). Another option is [Automerge](https://news.ycombinator.com/item?id=16309533) which looks like it might play nicer with Redux and then there's this fun article on the [performance and optimisations of CRDT solutions](https://news.ycombinator.com/item?id=28017204). It goes deep. [Figma found CRDTs were overkill](https://news.ycombinator.com/item?id=21378858) for their use case because they had a central server to act as a source of truth. CRDTs seem better suited for peer to peer communication but they did use them for inspiration.
+Diving in deeper, realtime applications are a thing all on their own. There's a range of solutions out there and each has their own trade-offs. CRDTs are pretty hot right now too, like [SyncedStore](https://news.ycombinator.com/item?id=29483913) which builds on [Yjs](https://github.com/yjs/yjs). Another option is [Automerge](https://news.ycombinator.com/item?id=16309533) which looks like it might play nicer with Redux and then there's this fun article on the [performance and optimisations of CRDT solutions](https://news.ycombinator.com/item?id=28017204). It goes deep. [Figma found CRDTs were overkill](https://news.ycombinator.com/item?id=21378858) for their use case because they had a central server to act as a source of truth. CRDTs seem better suited for peer to peer communication but they did use them for inspiration.
 
-I decided to do the same. I was already familiar with Redux which seems perfect for realtime applications. In Redux, users trigger Actions that are then handled by Reducers to update a central data store. Actions already contain all the information required by the Reducer to update the datastore, can't we just share them around? I found [Logux](https://logux.io/), [@localfirst/state](https://github.com/local-first-web/state) and [some others](https://github.com/markerikson/redux-ecosystem-links/blob/master/store.md#synchronization) seem to have a similar idea but I couldn't see how they would work with Cloudflare so I decided against them.
+I decided to do the same. I was already familiar with Redux and it seems perfect for realtime applications. In Redux, users trigger Actions that are then handled by Reducers to update a central data store. Actions already contain all the information required for the Reducer to update the data store, can't we just send them around to build a realtime application? I found [Logux](https://logux.io/), [@localfirst/state](https://github.com/local-first-web/state) and [some others](https://github.com/markerikson/redux-ecosystem-links/blob/master/store.md#synchronization) seem to have a similar idea but I couldn't see how they would work with Cloudflare so I decided against them in favour of rolling my own.
 
 ## Solution
 
 ![sequence diagram](/sequence.png)
 [Sequence Diagram in MermaidJS](https://mermaid.live/edit/#pako:eNrtlD1PwzAQhv_K4YWlDHTM0AlWQEKIJcslftu6JOfiD6qq4r9zIQkFRFvETKbEeZ873yPLO1N7C1MYinjOkBpXjheB21KIc_KS2wpBP_RZc0iudmuWRA8RgS4PrE9L6f_0qYvZ7NGHJ4SCGqTzSLUXQZ0oRycL2qCKvn5Cij3UZxW6yoGrBnRbrTRdUPQtvIA22ihS8ifqfMV_qpd8AKUlxkLOywF03P8SATpAx6D1Kxe1K9U5BEhqtrTkF3wbolfwQXYz0DzLgI-ibnwCBbdYJvJzGpm7hredTtLqCH1b1lb8xe_03-_0D36nn_xGiI3EA3XCLlurUa97DGP-qNaj1K8lqgrB5ii6l7gdjtCEeE-pvUgVIN1eYA-e0z08OP1U4-ydMhPTIrTsrF4cu26pNDpYi9IU-mox59yk0pTyqtG8tpxwbZ1OYoo5NxET090t91upTZFCxhga7p4h9foGWI6T6Q)
 
-[ up to here ]
+After all that background reading, the solution is quite simple. The frontend is a NextJS app with Redux, the API is a Cloudflare Worker and the data store is a Cloudflare Durable Object. The frontend sets up a WebSocket connection with the Worker which then effectively acts as a proxy for the Durable Object. When the connection is first established the Durable Object will send down the current feed of Emojis and remembers the connection for syncing updates later on.
 
-After all that background reading, the solution is quite simple. The frontend is a NextJS app with Redux, the API is a Cloudflare Worker and the data store is a Cloudflare Durable Object. The frontend sets up a WebSocket connection with the Worker which is effectively a proxy for the Durable Object. When the connection is first established the Durable Object will send down the current feed of Emojis and remembers the connection for syncing updates later on. When a user adds a new emoji, a new Redux action is created and a reducer handles it to update the local state. At the same time, that action is also sent through the WebSocket connection to the Durable Object. The Durable Object stores that emoji in the feed and broadcasts that action to other users through their existing WebSocket connection. They receive the action and a reducer handles it to update the local state.
+One interesting thing to note is this connection is stored in the Durable Object's memory, instead of persisted storage. This is because the Durable Object is alive for the entire time the client is connected. That's why [Glenn Maddern thinks about them like Stateful Workers](https://news.ycombinator.com/item?id=25084470), rather than Durable Objects, and I have to agree. More on this later.
 
-This is deployed using Cloudflare Pages which gives us a build and deploy pipeline so all we have to do is commit and push. I later learned that Durable Objects need to be deployed separately but more on that later.
+ Clicking the Add Emoji button creates a new Redux Action which a Reducer handles to update the local data store which then updates the page to display the new emoji using React. Nothing groundbreaking here but here's the fun part. That Action is also sent through the existing WebSocket connection to the Durable Object. The Durable Object then stores that emoji in the persisted feed and broadcasts that Action to other connected users through their WebSocket connections. That Action is received just like the local Action did, updating the local data store with the same Reducer which updates the page to display the new emoji.
+
+This is deployed with Cloudflare Pages which builds our code and deploys it as part of a pipeline triggered on new commits. This is the same experience Netlify provides and it's really nice but I later learned Durable Objects need to be deployed separately. More on that later.
+
+And that's it! That's how I built a stateful, realtime application which, as discussed earlier, is fun.
 
 ## Notes
+
+[ up to here ]
 
 This was a fun project overall. There were certainly rough parts but now that it's all working I'm really happy with how it turned out. Sharing Redux actions over WebSockets works well and the code for the the Durable Objects looks great.
 
@@ -63,7 +69,7 @@ I haven't deployed a package to NPM before so it took me a bit of time to work t
 
 ## Milestones
 
-- ✅ Setup cloudflare account.
+- ✅ Setup Cloudflare account.
 - ✅ Deploy NextJS website.
 - ✅ Setup Redux.
 - ✅ Create my first Worker function.
