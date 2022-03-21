@@ -48,13 +48,15 @@ This is deployed with Cloudflare Pages which builds our code and deploys it as p
 
 And that's it! That's how I built a stateful, realtime application which, as discussed earlier, is definitely fun.
 
-## Notes
+## Implementation
+
+This was a fun project overall. There were certainly rough parts but now that it's all working I'm really happy with how it's all turned out. Sharing Redux actions over WebSockets works well and the [Durable Object code](https://github.com/cadbox1/random-emojis/blob/main/durable_objects/src/document.ts) looks great.
+
+Glen Maddern describes Durable Objects as Stateful Workers in [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) and I have to agree now that I've worked with them. Durable Objects work just like workers with some persistence methods added on top. This is particularly evident with WebSockets because the Durable Object is kept alive for the entire duration of the connection so we actually store the connection in memory rather the persisting it. I don't think there's much of a distinction between the two options in the docs, maybe because it's only relevant when using WebSockets.
+
+I've built NextJS apps with MDX and custom components [before](https://github.com/cadbox1/prawn-stack) and decided to split them out into a reusable package for this project. The result is [cadells-vanilla-components](https://github.com/cadbox1/cadells-vanilla-components) and it's used in this [NextJS template](https://github.com/cadbox1/cadells-nextjs-template) I built to go with it. Creating the package was a bit harder than I first thought and it wasn't critical for this project but I'm really happy with the result and creating NextJS apps should be easier going forward. I originally tried using [tsdx](https://github.com/jaredpalmer/tsdx) but the typescript types weren't correct and I couldn't work out why. I started looking for a tool that used [esbuild](https://github.com/evanw/esbuild) instead of [Rollup](https://github.com/rollup/rollup) and found [tsup](https://github.com/egoist/tsup) which pretty much worked out of the box. Happy days! Tsdx did introduce me to [np](https://github.com/sindresorhus/np) for publishing to NPM and it works really well so everything happened for a reason.
 
 [ up to here ]
-
-This was a fun project overall. There were certainly rough parts but now that it's all working I'm really happy with how it turned out. Sharing Redux actions over WebSockets works well and the code for the the Durable Objects looks great.
-
-Glen Maddern describes Durable Objects as Stateful Workers in [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) and after working with them I have to agree. Durable Objects work just like workers with some persistence methods added on top. I think this really shines with WebSockets.
 
 ## Challenges
 
