@@ -54,19 +54,24 @@ This was a fun project overall. There were certainly rough parts but now that it
 
 Glen Maddern describes Durable Objects as Stateful Workers in [Durable Objects in production](https://news.ycombinator.com/item?id=25084470) and I have to agree now that I've worked with them. Durable Objects work just like workers with some persistence methods added on top. This is particularly evident with WebSockets because the Durable Object is kept alive for the entire duration of the connection so we actually store the connection in memory rather the persisting it. I don't think there's much of a distinction between the two options in the docs, maybe because it's only relevant when using WebSockets.
 
-I've built NextJS apps with MDX and custom components [before](https://github.com/cadbox1/prawn-stack) and decided to split them out into a reusable package for this project. The result is [cadells-vanilla-components](https://github.com/cadbox1/cadells-vanilla-components) and it's used in this [NextJS template](https://github.com/cadbox1/cadells-nextjs-template) I built to go with it. Creating the package was a bit harder than I first thought and it wasn't critical for this project but I'm really happy with the result and creating NextJS apps should be easier going forward. I originally tried using [tsdx](https://github.com/jaredpalmer/tsdx) but the typescript types weren't correct and I couldn't work out why. I started looking for a tool that used [esbuild](https://github.com/evanw/esbuild) instead of [Rollup](https://github.com/rollup/rollup) and found [tsup](https://github.com/egoist/tsup) which pretty much worked out of the box. Happy days! Tsdx did introduce me to [np](https://github.com/sindresorhus/np) for publishing to NPM and it works really well so everything happened for a reason.
-
-[ up to here ]
+I've built NextJS apps with MDX and custom components [before](https://github.com/cadbox1/prawn-stack) and decided to split them out into a reusable package for this project. The result is [cadells-vanilla-components](https://github.com/cadbox1/cadells-vanilla-components) and it's used in this [NextJS template](https://github.com/cadbox1/cadells-nextjs-template) I built to go with it. Creating the package was a bit harder than I first thought, and it wasn't critical for this project, but I'm really happy with the result and my next NextJS app should be much easy to setup. I originally tried using [tsdx](https://github.com/jaredpalmer/tsdx) but the typescript types weren't correct and I couldn't work out why. I started looking for a tool that used [esbuild](https://github.com/evanw/esbuild) instead of [Rollup](https://github.com/rollup/rollup) and found [tsup](https://github.com/egoist/tsup) which pretty much worked out of the box. Happy days! Tsdx did introduce me to [np](https://github.com/sindresorhus/np) for publishing to NPM so I brought that over and it works really well. Everything happened for a reason.
 
 ## Challenges
 
-Cloudflare Pages presented a few challenges:
-1. Cloudflare Pages has Functions which are just Cloudflare Workers but there are some slight differences and a lot of the Workers docs take some adjustment.
-1. I couldn't find any logs for my Cloudflare Pages Functions, making debugging slow.
-1. The relationship between Durable Objects and Pages wasn't clearly documented. I eventually worked out Durable Objects are deployed separately but it took me a while to get there. The steps in the readme are also misleading.
-1. My first Cloudflare Pages deploy failed with NextJS, needed to specify a node version with nvmrc.
+My biggest challenge in this project was Cloudflare Pages. As discussed earlier, I chose to use Cloudflare Pages because it sounded like a nice developer experience - just push your code and the build and deployment is handled for you. It goes further than Netlify by offering not only backend functions but also persistence with Durable Objects. They just announced [Cloudflare Pages Goes Full Stack](https://blog.cloudflare.com/cloudflare-pages-goes-full-stack) and I was keen to ride the hype train.
 
-I haven't deployed a package to NPM before so it took me a bit of time to work that out. I started with [TSDX](https://github.com/jaredpalmer/tsdx) but ran into some typescript issues that I still don't fully understand. Thankfully, I tried [tsup](https://github.com/egoist/tsup) and it worked more or less out of the box. I also used [np](https://github.com/sindresorhus/np) for releasing to NPM which has brought [cadells-vanilla-components](https://github.com/cadbox1/cadells-vanilla-components) into the world. It doesn't have Storybook or anything like that but it's working well enough so far.
+However, new products and hype trains are often a bit rough around the edges and that was certainly my experience with Cloudflare Pages. I'm extremely happy with the result but it was a bit of a journey to get there. In short:
+
+1. Using Durable Objects with Pages isn't well documented.
+1. No logs for Functions.
+1. The Functions API is slightly different to Workers.
+1. My first NextJS build failed.
+1. Clicking on an in-progress build doesn't always take you to that build.
+1. Pages builds were down one day.
+
+None of these were deal breakers but they did subtract from the developer experience. Thankfully, I think a lot of these could be improved quite easily.
+
+[ up to here ]
 
 
 ## Milestones
