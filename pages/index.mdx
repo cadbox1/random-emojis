@@ -62,17 +62,81 @@ My biggest challenge in this project was Cloudflare Pages. As discussed earlier,
 
 However, new products and hype trains are often a bit rough around the edges and that was certainly my experience with Cloudflare Pages. I'm extremely happy with the result but it was a bit of a journey to get there. In short:
 
-1. Using Durable Objects with Pages isn't well documented.
-1. No logs for Functions.
-1. The Functions API is slightly different to Workers.
-1. My first NextJS build failed.
+1. No Function logs.
+1. Functions API is slightly different to Workers API.
+1. Durable Objects usage isn't well documented.
+1. My very first NextJS build failed.
+1. Long feedback cycles with each build taking a few minutes.
 1. Clicking on an in-progress build doesn't always take you to that build.
-1. Pages builds were down one day.
+1. There was some downtime one day where all builds failed.
 
-None of these were deal breakers but they did subtract from the developer experience. Thankfully, I think a lot of these could be improved quite easily.
+None of these were deal breakers but they did subtract from the developer experience. Thankfully, a lot of these should easy to fix.
+
+### No Function Logs
+There's no logs for your Functions. Or at least I couldn't find where they are or any documentation about them. This made it very hard to work out what was going wrong and I had to capture each error and send it back in a HTTP response or through the WebSocket, when I eventually worked out how to set that up. This made for long feedback cycles especially when each builds take a few minutes and you're only deploying some code to capture the error. Workers have logs so I suspect it's on the way.
+
+### Functions API
+The Functions API is slightly different to the Workers API meaning you have to unravel every Workers example you come across. Now that I'm finished, the differences aren't massive but it definitely adds some overhead when you're getting started, particularly with WebSockets. This is amplified by the lack of Function logs and long feedback cycles discussed above.
+
+### Poor Durable Objects Documentation
+Using Durable Objects with Pages is really poorly documented. This is particularly frustrating because Pages support for Durable Objects was a big driver for the project. TL;DR Durable Objects are deployed separately and manually and I've documented the [process here](https://github.com/cadbox1/random-emojis/tree/main/durable_objects).
+
+This blog post on [Building full stack with Pages](https://blog.cloudflare.com/building-full-stack-with-pages#persisting-data) has a code example for Durable Objects that shows a single javascript file at `./durable_objects/downloadCounter.js`. This looked fantastic to me. Just like Functions are automatically deployed from a `functions` folder, Durable Objects are deployed from a `durable_objects` folder. That's not the case because I tried and it didn't work. I think the blog post is a bit misleading and should be updated.
+
+![durable objects usage on their blog](/durable-objects-usage-on-blog.png)
+
+Diving into why, I checked out the [images.pages.dev code example](https://github.com/cloudflare/images.pages.dev) for the blog post. That's where I found an entire package in the [durable_objects folder](https://github.com/cloudflare/images.pages.dev/tree/main/durable_objects) instead of a single javascript file. The README then explains that this is because wrangler v2 doesn't support Durable Objects. I don't know what wrangler is or how it's related to Pages. Adding the package doesn't deploy a Durable Object and that's when I found out you have to deploy the Durable Object manually.
+
+Googling `pages durable objects` takes you to a [page that sounds relevant](https://developers.cloudflare.com/workers/learning/using-durable-objects/) but it's actually for Workers, not Pages. These are the [Pages Docs for Durable Objects](https://developers.cloudflare.com/pages/platform/functions/#durable-object-namespace) and they don't reveal much but it does confirm we need to deploy our Durable Object manually
+
+Let's do that by jumping back to the README.
+
+```
+npm install;
+CF_ACCOUNT_ID="<YOUR CLOUDFLARE ACCOUNT ID>" npm run publish;
+```
+
+That doesn't work and I'll quickly go through why:
+1. That command doesn't use the wrangler installed as a dependency so it will fail unless you have wrangler installed globally.
+1. You need to login to Cloudflare with wrangler first.
+1. Deployment will then fail with an error message that loosely mentions your plan and takes you to a blank page in the dashboard. I think this is a bug but you can get around it by signing up to the Workers Paid plan from the dashboard.
+1. Your next deploy will fail because you need to agree to some terms. Thankfully, this link works.
+1. You need to bind your Durable Object as an environment variable in Pages to use it.
+
+I've documented the actual process in my [Durable Object package](https://github.com/cadbox1/random-emojis/tree/main/durable_objects) but it's basically:
+1. Sign up for the Workers Paid plan.
+1. Login to Wrangler
+1. Try and deploy the Durable Object then accept the license agreement when prompted.
+1. Actually deploy the Durable Object.
+1. Go into Cloudflare Pages in the Cloudflare Dashboard and bind the newly deployed Durable Object to an environment variable.
+
+So deploys are manual and it was a bit of a journey to get here but the positive is deploys are really fast. It's closer to seconds than minutes and faster than some local environments I've used. I probably wouldn't need a local environment at all when it's this fast and the feedback cycles were much shorter and nicer than Pages. Makes me think I shouldn't have used Pages but more on that later.
+
+### First NextJS Build Failed
+This is a small issue but it really hurts the developer experience when a stock NextJS app fails out of the box and Netlify nails this. It's because the [default Node version in Pages is too old for NextJS 12](https://community.cloudflare.com/t/pages-node-js-version-is-too-old-for-nextjs-12/335044) and solution I went with was to include a [.nvmrc](https://github.com/cadbox1/random-emojis/blob/main/.nvmrc) in your project to specify a Node version that is compatible with NextJS 12. I think this is best practice anyway but isn't a nice developer experience for new developers.
 
 [ up to here ]
 
+[ ideas ]
+1. Long feedback cycles with each build taking a few minutes.
+1. Clicking on an in-progress build doesn't always take you to that build.
+1. There was some downtime one day where all builds failed.
+[ /ideas ]
+
+### Possible Solution: Use Wrangler Instead of Pages
+You could make the case that it would easier than Pages because:
+1. There's more documentation for things like WebSockets and Durable Objects.
+1. You'll have logs for your Workers.
+1. Deploys are faster.
+1. You'll have to deploy Durable Objects with Wrangler anyway.
+
+On the other hand:
+1. Pages sounds like the long term vision for Cloudflare.
+1. A team would probably need a build pipeline.
+1. The documentation will get better.
+1. Surely they'll have Function logs soon.
+1. Durable Objects deployment might get better.
+1. Builds will get faster, they've already announced [fast builds](https://community.cloudflare.com/t/cloudflare-pages-fast-builds-open-beta/359897).
 
 ## Milestones
 
