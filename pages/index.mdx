@@ -113,18 +113,20 @@ I've documented the actual process in my [Durable Object package](https://github
 So deploys are manual and it was a bit of a journey to get here but the positive is deploys are really fast. It's closer to seconds than minutes and faster than some local environments I've used. I probably wouldn't need a local environment at all when it's this fast and the feedback cycles were much shorter and nicer than Pages. Makes me think I shouldn't have used Pages but more on that later.
 
 ### First NextJS Build Failed
-This is a small issue but it really hurts the developer experience when a stock NextJS app fails out of the box and Netlify nails this. It's because the [default Node version in Pages is too old for NextJS 12](https://community.cloudflare.com/t/pages-node-js-version-is-too-old-for-nextjs-12/335044) and solution I went with was to include a [.nvmrc](https://github.com/cadbox1/random-emojis/blob/main/.nvmrc) in your project to specify a Node version that is compatible with NextJS 12. I think this is best practice anyway but isn't a nice developer experience for new developers.
+The first time you build a stock NextJS app in Cloudflare Pages it will fail. This is a really small issue and it's easy to fix but it hurts the developer experience, particularly when Netlify does so well in this area. It's because the [default Node version in Pages is too old for NextJS 12](https://community.cloudflare.com/t/pages-node-js-version-is-too-old-for-nextjs-12/335044) and the solution I went with was to include a [.nvmrc](https://github.com/cadbox1/random-emojis/blob/main/.nvmrc) in the project to specify a Node version that is compatible with NextJS 12. I think setting up something to specify the node version is best practice anyway but new developers aren't going to know that and they are going to run into this.
 
-[ up to here ]
+### Builds, Bugs and Downtime
 
-[ ideas ]
-1. Long feedback cycles with each build taking a few minutes.
-1. Clicking on an in-progress build doesn't always take you to that build.
-1. There was some downtime one day where all builds failed.
-[ /ideas ]
+This isn't isolated to Cloudflare Pages but each build does take a few minutes, increasing the feedback cycle. To make things worse, there seems to be a bug with the builds page where clicking a build doesn't always take you to that build. It might have something to do with in-progress builds but I just ended up refreshing the builds page each time which seemed to make the links work. This makes for a poor experience when most of your builds are adding some sort of logging just to work out what went wrong because, as discussed above, there's no error logs.
+
+I eventually became content with this and added it to my "modern development is funny sometimes" list. Then I deployed my Durable Object with Wrangler and saw how fast that was and all my contentment was instantly erased. "What if we could have cloud AND fast feedback cycles!?". More on this below. If you like this idea then you might like this article I found the other day about a [A magical AWS serverless developer experience](https://news.ycombinator.com/item?id=30827038) which uses [Serverless Stack (SST)](https://serverless-stack.com/).
+
+Pages have since announced [fast builds](https://community.cloudflare.com/t/cloudflare-pages-fast-builds-open-beta/359897) which sounds promising.
+
+The only other thing that's barely worth mentioning is Pages had some downtime for all my builds one day. Downtime happens, particularly in betas, but I don't get a lot of time for side projects like these and it was disappointing to be blocked after working up the motivation to work on this project one day. Maybe local development is important? I tend to think so but [others aren't so sure](https://dev.to/garethmcc/why-local-development-for-serverless-is-an-anti-pattern-1d9b).
 
 ### Possible Solution: Use Wrangler Instead of Pages
-You could make the case that it would easier than Pages because:
+You could make the case that it would be better to use Wrangler over Pages because:
 1. There's more documentation for things like WebSockets and Durable Objects.
 1. You'll have logs for your Workers.
 1. Deploys are faster.
@@ -133,10 +135,14 @@ You could make the case that it would easier than Pages because:
 On the other hand:
 1. Pages sounds like the long term vision for Cloudflare.
 1. A team would probably need a build pipeline.
-1. The documentation will get better.
+1. Pages documentation will get better.
 1. Surely they'll have Function logs soon.
 1. Durable Objects deployment might get better.
 1. Builds will get faster, they've already announced [fast builds](https://community.cloudflare.com/t/cloudflare-pages-fast-builds-open-beta/359897).
+
+## Summary
+
+This was awesome. I'm really happy with the app, code and Cloudflare and I'm even more proud because of the challenges I overcame. On the other hand, if I waited a few months and let them polish up the beta then maybe I wouldn't have so many challenges but then I would miss the hype train! Anyway, I hope Cloudflare can improve the developer experience based on my feedback and create a better product in an exciting space. It probably took longer to write about than it did to actually develop the app but I'm working on that too!
 
 ## Milestones
 
@@ -146,23 +152,13 @@ On the other hand:
 - ✅ Create my first Worker function.
 - ✅ Setup a WebSocket connection with a Worker. (2.5h to get to this point)
 - ✅ Deploy a Durable Object. (2h)
-    - create a durable object
-        - resources
-            - https://blog.cloudflare.com/building-full-stack-with-pages/
-            - https://github.com/cloudflare/images.pages.dev
-            - https://developers.cloudflare.com/pages/platform/functions#durable-object-namespace
-            - https://developers.cloudflare.com/workers/learning/using-durable-objects#uploading-a-durable-object-worker
-        - I thought you could just put a file in the durable_objects folder but that doesn't appear to be the case
-            - https://github.com/cloudflare/images.pages.dev/tree/main/durable_objects
-            - here's a ts template
-                - https://github.com/cloudflare/durable-objects-typescript-rollup-esm
-            - doesn't work by itself, you have to publish inside the folder
-                - requires npx wrangler login, which isn't mentioned
-                - npm run publish then goes on to produce a strange error about agreements which I interpreted as durable objects not being supported in the free tier
-                    - Workers > Plan > Paid to set that up
-            - npx run publish then goes onto produce the same error but this time it actually shows a prompt where you can agree
-                - I think this was meant to come up before, probably a bug
-            - finally npx run publish works and now I understand it better - it creates a durable object that you can manually bind in pages to access it. that sure was confusing
+    - resources
+        - https://blog.cloudflare.com/building-full-stack-with-pages/
+        - https://github.com/cloudflare/images.pages.dev
+        - https://developers.cloudflare.com/pages/platform/functions#durable-object-namespace
+        - https://developers.cloudflare.com/workers/learning/using-durable-objects#uploading-a-durable-object-worker
+    - challenges
+        - it was really hard to workout how to setup a Durable Object.
 - ✅ Access the Durable Object from a Worker. (1.5h)
     - builds failed due to an internal error which was annoying
     - needed to add more error logging because again I can't see builds
@@ -174,4 +170,4 @@ On the other hand:
 - ✅ Create a reusable npm package for components and styles. (3h)
     - https://github.com/cadbox1/cadells-vanilla-components
 - ✅ Style this and setup MDX. (1.5h)
-- Write about the project and my experience.
+- Write about the project and my experience (20h, massive guess).
